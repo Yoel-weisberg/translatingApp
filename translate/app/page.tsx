@@ -6,10 +6,11 @@ import PracticeScreen from "@/components/practice-screen"
 import AllCardsScreen from "@/components/all-cards-screen"
 import { setupGlobalErrorHandlers } from "@/lib/error-handlers"
 import { useEffect } from "react"
-
+import { registerServiceWorker } from "@/lib/register-sw"
 export default function Home() {
   useEffect(() => {
     setupGlobalErrorHandlers()
+    registerServiceWorker();  
   }, [])
 
   return (
