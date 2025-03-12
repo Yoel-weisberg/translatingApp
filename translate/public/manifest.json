@@ -39,6 +39,12 @@
     "sizes": "375x811",
     "type": "image/png",
     "form_factor": "narrow"
+  }, 
+  {
+    "src": "/screenshot-pc.png",
+    "sizes": "1914x924",
+    "type": "image/png",
+    "form_factor": "wide"
   }
 ]
 }
