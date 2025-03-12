@@ -3,7 +3,7 @@
   "short_name": "LangLearn",
   "description": "Translate and practice with flashcards",
   "start_url": "/",
-  "display": "fullscreen",
+  "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait",
@@ -34,18 +34,17 @@
     }
   ],
   "screenshots": [
-  {
-    "src": "/screenshot-mobile.png",
-    "sizes": "375x811",
-    "type": "image/png",
-    "form_factor": "narrow"
-  }, 
-  {
-    "src": "/screenshot-pc.png",
-    "sizes": "1914x924",
-    "type": "image/png",
-    "form_factor": "wide"
-  }
-]
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "375x811",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-pc.png",
+      "sizes": "1914x924",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
 }
-
