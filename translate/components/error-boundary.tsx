@@ -36,7 +36,7 @@ class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="flex flex-col items-center justify-center h-screen p-4 bg-black text-white">
           <h2 className="text-xl font-bold mb-4">Something went wrong</h2>
-          <p className="text-zinc-400 mb-6">The app encountered an error but we've prevented it from crashing.</p>
+          <p className="text-zinc-400 mb-6">The app encountered an error but we&apos;ve prevented it from crashing.</p>
           <Button
             onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
             className="bg-zinc-800 hover:bg-zinc-700"

@@ -177,7 +177,7 @@ export default function AllCardsScreen() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-60px)] max-h-[calc(100vh-60px)]">
+    <div className="flex flex-col h-full">
       <div className="p-4 flex flex-col gap-4">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold">All Cards</h2>

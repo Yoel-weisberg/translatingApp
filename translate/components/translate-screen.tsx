@@ -1,9 +1,11 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeftRight, Loader2, Search } from "lucide-react"
+import { ArrowLeftRight, Loader2, Search, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import {
   DropdownMenu,
@@ -16,7 +18,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { languages, commonLanguages } from "@/lib/languages"
-import { addActiveCard } from "@/lib/db"
+import { addActiveCard, getSetting, saveSetting, initDB } from "@/lib/db"
+
+// Maximum character limit for translations
+const MAX_CHARS = 40
 
 // Debounce function to delay API calls while typing
 function useDebounce<T>(value: T, delay: number): T {
@@ -36,22 +41,88 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export default function TranslateScreen() {
-  const [inputText, setInputText] = useState("")
-  const [translation, setTranslation] = useState("")
-  const [sourceLanguage, setSourceLanguage] = useState("es") // Spanish
-  const [targetLanguage, setTargetLanguage] = useState("en") // English
-  const [isTranslating, setIsTranslating] = useState(false)
-  const [sourceSearchQuery, setSourceSearchQuery] = useState("")
-  const [targetSearchQuery, setTargetSearchQuery] = useState("")
+  // Start with null or loading state values
+  const [inputText, setInputText] = useState("");
+  const [translation, setTranslation] = useState("");
+  const [sourceLanguage, setSourceLanguage] = useState<String | null>(null); // Start with null
+  const [targetLanguage, setTargetLanguage] = useState<String | null>(null); // Start with null
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [sourceSearchQuery, setSourceSearchQuery] = useState("");
+  const [targetSearchQuery, setTargetSearchQuery] = useState("");
+  const [isOverLimit, setIsOverLimit] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Add a loading state
 
-  // Get language names for display
+  // Language name memoization
   const sourceLanguageName = useMemo(() => {
-    return languages.find((lang) => lang.code === sourceLanguage)?.name || sourceLanguage
-  }, [sourceLanguage])
+    if (!sourceLanguage) return ""; // Handle null case
+    return languages.find((lang) => lang.code === sourceLanguage)?.name || sourceLanguage;
+  }, [sourceLanguage]);
 
   const targetLanguageName = useMemo(() => {
-    return languages.find((lang) => lang.code === targetLanguage)?.name || targetLanguage
-  }, [targetLanguage])
+    if (!targetLanguage) return ""; // Handle null case
+    return languages.find((lang) => lang.code === targetLanguage)?.name || targetLanguage;
+  }, [targetLanguage]);
+
+  // Load saved language preferences
+  useEffect(() => {
+    async function loadLanguagePreferences() {
+      try {
+        
+        // Force IndexedDB to initialize first
+        await initDB();
+        
+        // Load source language with a default of "es"
+        const savedSourceLang = await getSetting("sourceLanguage", "source");
+        
+        // Load target language with a default of "en"
+        const savedTargetLang = await getSetting("targetLanguage", "target");
+        
+        // Set both languages at once to avoid multiple renders
+        setSourceLanguage(savedSourceLang);
+        setTargetLanguage(savedTargetLang);
+        
+        // Mark loading as complete
+        setIsLoading(false);
+      } catch (error) {
+        // Set defaults if there was an error
+        setSourceLanguage("source");
+        setTargetLanguage("targ");
+        setIsLoading(false);
+      }
+    }
+    
+    loadLanguagePreferences();
+  }, []); // Empty dependency array - only run once on mount
+
+  // Save language preferences when they change
+  useEffect(() => {
+    // Only save if we're not in the loading state and both languages have values
+    if (!isLoading && sourceLanguage && targetLanguage) {
+      async function saveLanguagePreferences() {
+        try {
+          await saveSetting("sourceLanguage", sourceLanguage);
+          
+          await saveSetting("targetLanguage", targetLanguage);
+          
+        } catch (error) {
+          console.error("Failed to save language preferences:", error);
+        }
+      }
+      
+      saveLanguagePreferences();
+    }
+  }, [sourceLanguage, targetLanguage, isLoading]);
+
+  // Custom language selection handlers with additional logging
+  const selectSourceLanguage = (code: string) => {
+    setSourceLanguage(code);
+    setSourceSearchQuery("");
+  };
+
+  const selectTargetLanguage = (code: string) => {
+    setTargetLanguage(code);
+    setTargetSearchQuery("");
+  };
 
   // Debounce the input text to avoid excessive API calls
   const debouncedInputText = useDebounce(inputText, 800) // 800ms delay
@@ -69,10 +140,23 @@ export default function TranslateScreen() {
     return languages.filter((lang) => lang.name.toLowerCase().includes(debouncedTargetSearch.toLowerCase()))
   }, [debouncedTargetSearch])
 
+  // Check if input exceeds character limit
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value
+    setInputText(text)
+    setIsOverLimit(text.length > MAX_CHARS)
+
+    if (text.length > MAX_CHARS) {
+      toast.error(`Character limit exceeded (${MAX_CHARS})`, {
+        description: "Please shorten your text for translation.",
+      })
+    }
+  }
+
   // Memoize the translate function to avoid recreating it on every render
   const translateText = useCallback(
     async (text: string) => {
-      if (!text.trim() || text.trim().length < 2) {
+      if (!text.trim() || text.trim().length < 2 || text.length > MAX_CHARS) {
         setTranslation("")
         return
       }
@@ -114,17 +198,17 @@ export default function TranslateScreen() {
 
   // Effect to trigger translation when debounced input text changes
   useEffect(() => {
-    if (debouncedInputText) {
+    if (debouncedInputText && !isOverLimit) {
       translateText(debouncedInputText)
     }
-  }, [debouncedInputText, translateText])
+  }, [debouncedInputText, translateText, isOverLimit])
 
   // Effect to trigger translation when languages change (if there's text to translate)
   useEffect(() => {
-    if (inputText.trim()) {
+    if (inputText.trim() && !isOverLimit) {
       translateText(inputText)
     }
-  }, [sourceLanguage, targetLanguage, translateText])
+  }, [sourceLanguage, targetLanguage, translateText, inputText, isOverLimit])
 
   const addToPractice = async () => {
     if (!inputText || !translation) return
@@ -154,26 +238,36 @@ export default function TranslateScreen() {
   }
 
   const swapLanguages = () => {
-    const tempLang = sourceLanguage
-    setSourceLanguage(targetLanguage)
-    setTargetLanguage(tempLang)
-    setInputText(translation)
-    setTranslation(inputText)
-  }
+    const tempLang = sourceLanguage;
+    setSourceLanguage(targetLanguage);
+    setTargetLanguage(tempLang);
+    setInputText(translation);
+    setTranslation(inputText);
+  };
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 flex flex-col p-4">
-        <Textarea
-          placeholder="Enter text"
-          className="flex-1 min-h-[200px] bg-transparent border-none text-white text-xl resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-        />
+      <div className="flex-1 flex flex-col p-4 overflow-hidden">
+        <div className="relative flex-1 min-h-0">
+          <Textarea
+            placeholder="Enter text "
+            className={`h-full min-h-[150px] bg-transparent border-none text-white text-3xl resize-none focus-visible:ring-0 focus-visible:ring-offset-0 ${isOverLimit ? "text-red-400" : ""}`}
+            value={inputText}
+            onChange={handleInputChange}
+          />
+          {isOverLimit && (
+            <div className="absolute top-2 right-2 text-red-400 flex items-center">
+              <AlertCircle className="h-4 w-4 mr-1" />
+              <span className="text-xs">
+                {inputText.length}/{MAX_CHARS}
+              </span>
+            </div>
+          )}
+        </div>
 
         <div className="h-px bg-zinc-800 my-4" />
 
-        <div className="flex-1 text-zinc-400 text-xl relative">
+        <div className="flex-1 text-zinc-400 text-3xl relative min-h-0 overflow-auto">
           {isTranslating ? (
             <div className="absolute inset-0 flex items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -184,12 +278,12 @@ export default function TranslateScreen() {
         </div>
       </div>
 
-      <div className="mt-auto p-4">
+      <div className="p-4 mt-auto">
         <Button
           variant="outline"
           className="w-full mb-4 bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700"
           onClick={addToPractice}
-          disabled={!translation || isTranslating}
+          disabled={!translation || isTranslating || isOverLimit}
         >
           Add to practice
         </Button>
@@ -227,10 +321,7 @@ export default function TranslateScreen() {
                       <DropdownMenuItem
                         key={lang.code}
                         className="cursor-pointer hover:bg-zinc-700 text-white"
-                        onClick={() => {
-                          setSourceLanguage(lang.code)
-                          setSourceSearchQuery("")
-                        }}
+                        onClick={() => selectSourceLanguage(lang.code)}
                       >
                         {lang.name}
                       </DropdownMenuItem>
@@ -293,8 +384,7 @@ export default function TranslateScreen() {
                         key={lang.code}
                         className="cursor-pointer hover:bg-zinc-700 text-white"
                         onClick={() => {
-                          setTargetLanguage(lang.code)
-                          setTargetSearchQuery("")
+                          selectTargetLanguage(lang.code)
                         }}
                       >
                         {lang.name}

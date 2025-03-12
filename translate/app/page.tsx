@@ -5,17 +5,35 @@ import TranslateScreen from "@/components/translate-screen"
 import PracticeScreen from "@/components/practice-screen"
 import AllCardsScreen from "@/components/all-cards-screen"
 import { setupGlobalErrorHandlers } from "@/lib/error-handlers"
-import { useEffect } from "react"
 import { registerServiceWorker } from "@/lib/register-sw"
+import { useEffect } from "react"
+import { Coffee } from "lucide-react"
+import SupportScreen from "@/components/support-screen"
+
 export default function Home() {
   useEffect(() => {
     setupGlobalErrorHandlers()
-    registerServiceWorker();  
+    registerServiceWorker()
+
+    // Verify that IndexedDB is working and settings are accessible
+    const verifySettings = async () => {
+      try {
+        const { getSetting } = await import("@/lib/db")
+        const sourceLanguage = await getSetting("sourceLanguage", null)
+        const targetLanguage = await getSetting("targetLanguage", null)
+
+        console.log("Initial language settings:", { sourceLanguage, targetLanguage })
+      } catch (error) {
+        console.error("Error verifying settings:", error)
+      }
+    }
+
+    verifySettings()
   }, [])
 
   return (
-    <main className="flex min-h-screen flex-col bg-black text-white">
-      <Tabs defaultValue="translate" className="w-full">
+    <main className="flex flex-col bg-black text-white h-[100dvh] max-h-[100dvh] overflow-hidden">
+      <Tabs defaultValue="translate" className="w-full h-full flex flex-col">
         <div className="flex justify-center pt-4 pb-2">
           <TabsList className="bg-zinc-800">
             <TabsTrigger value="translate" className="text-white data-[state=active]:bg-zinc-700">
@@ -27,20 +45,29 @@ export default function Home() {
             <TabsTrigger value="cards" className="text-white data-[state=active]:bg-zinc-700">
               cards
             </TabsTrigger>
+            <TabsTrigger value="helpMe" className="text-white data-[state=active]:bg-zinc-700">
+              <Coffee />
+            </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="translate" className="h-[calc(100vh-60px)]">
-          <TranslateScreen />
-        </TabsContent>
+        <div className="flex-1 overflow-hidden">
+          <TabsContent value="translate" className="h-full m-0 p-0">
+            <TranslateScreen />
+          </TabsContent>
 
-        <TabsContent value="practice" className="h-[calc(100vh-60px)]">
-          <PracticeScreen />
-        </TabsContent>
+          <TabsContent value="practice" className="h-full m-0 p-0">
+            <PracticeScreen />
+          </TabsContent>
 
-        <TabsContent value="cards" className="h-[calc(100vh-60px)]">
-          <AllCardsScreen />
-        </TabsContent>
+          <TabsContent value="cards" className="h-full m-0 p-0">
+            <AllCardsScreen />
+          </TabsContent>
+
+          <TabsContent value="helpMe" className="h-full m-0 p-0">
+            <SupportScreen />
+          </TabsContent>
+        </div>
       </Tabs>
     </main>
   )

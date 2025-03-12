@@ -29,6 +29,7 @@ import {
   migrateFromLocalStorage,
 } from "@/lib/db"
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function PracticeScreen() {
   const [allActiveCards, setAllActiveCards] = useState<Flashcard[]>([])
   const [filteredActiveCards, setFilteredActiveCards] = useState<Flashcard[]>([])
@@ -233,7 +234,7 @@ export default function PracticeScreen() {
 
     if (filteredUnknown.length === 0) {
       toast.error("No unknown cards to practice", {
-        description: "You haven't marked any cards as unknown yet.",
+        description: "You haven&apos;t marked any cards as unknown yet.",
       })
       return
     }
@@ -401,7 +402,7 @@ export default function PracticeScreen() {
   const currentCard = filteredActiveCards[currentIndex]
 
   return (
-    <div className="flex flex-col h-[calc(100vh-60px)] max-h-[calc(100vh-60px)]">
+    <div className="flex flex-col h-full">
       <div className="flex items-center justify-between p-2">
         <Button variant="ghost" size="icon" onClick={shuffleCards}>
           <Shuffle className="h-5 w-5" />
@@ -430,7 +431,7 @@ export default function PracticeScreen() {
       <div className="flex-1 flex items-center justify-center p-2 overflow-hidden">
         {/* Card container with perspective for 3D effect */}
         <div className="w-full max-w-xs perspective-1000">
-          {/* Flashcard with flip and swipe functionality */}
+          {/* Flashcard with flip functionality */}
           <div
             key={currentCard?.id || currentIndex}
             ref={cardRef}

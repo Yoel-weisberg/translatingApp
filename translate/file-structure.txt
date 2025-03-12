@@ -1,0 +1,12 @@
+your-project/
+├── app/
+├── components/
+├── lib/
+├── public/
+│   ├── icon-192.png  <-- Place your 192x192 icon here
+│   ├── icon-512.png  <-- Place your 512x512 icon here
+│   ├── manifest.json
+│   └── sw.js
+├── next.config.mjs
+└── package.json
+

@@ -1,4 +1,3 @@
-// Service Worker for Language Learning PWA
 const CACHE_NAME = "language-learning-pwa-v1"
 
 // Assets to cache on install

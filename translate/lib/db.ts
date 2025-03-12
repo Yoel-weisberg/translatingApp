@@ -21,16 +21,16 @@ export const initDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION)
 
-    request.onerror = (event) => {
+    request.onerror = (_event) => {
       console.error("IndexedDB error:", request.error)
       reject(request.error)
     }
 
-    request.onsuccess = (event) => {
+    request.onsuccess = (_event) => {
       resolve(request.result)
     }
 
-    request.onupgradeneeded = (event) => {
+    request.onupgradeneeded = (_event) => {
       const db = request.result
 
       // Create object stores if they don't exist
@@ -195,25 +195,34 @@ export const clearStore = async (storeName: string): Promise<void> => {
 }
 
 // Get a setting value
-export const getSetting = async <T>(key: string, defaultValue: T)
-: Promise<T> =>
-{
+export const getSetting = async <T>(key: string, defaultValue: T): Promise<T> => {
   try {
-    const db = await initDB()
+    const db = await initDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(STORES.SETTINGS, 'readonly');
       const store = transaction.objectStore(STORES.SETTINGS);
       const request = store.get(key);
 
       request.onsuccess = () => {
-        if (request.result) {
+        // Check if the result exists AND has a value property
+        if (request.result && request.result.value !== undefined) {
           resolve(request.result.value);
         } else {
-          resolve(defaultValue);
+          // If the setting doesn't exist, initialize it with the default value
+          // This ensures it exists for future requests
+          saveSetting(key, defaultValue)
+            .then(() => {
+              resolve(defaultValue);
+            })
+            .catch((err) => {
+              console.error(`Error initializing setting ${key}:`, err);
+              resolve(defaultValue);
+            });
         }
       };
 
       request.onerror = () => {
+        console.error(`Error in request for setting ${key}:`, request.error);
         reject(request.error);
       };
 
@@ -222,27 +231,35 @@ export const getSetting = async <T>(key: string, defaultValue: T)
       };
     });
   } catch (error) {
-    console.error(`Error getting setting ${key}:`, error)
+    console.error(`Error getting setting ${key}:`, error);
     return defaultValue;
   }
-}
+};
 
-// Save a setting value
-export const saveSetting = async <T>(key: string, value: T)
-: Promise<void> =>
-{
+// Improved version of saveSetting with additional validation
+export const saveSetting = async <T>(key: string, value: T): Promise<void> => {
+  // If value is undefined or null, log a warning but continue with saving
+  // This way we're not silently failing when problematic values are passed
+  if (value === undefined || value === null) {
+    console.warn(`Warning: Attempting to save ${key} with ${value} value. This may cause issues.`);
+  }
+  
   try {
-    const db = await initDB()
+    const db = await initDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(STORES.SETTINGS, 'readwrite');
       const store = transaction.objectStore(STORES.SETTINGS);
-      const request = store.put({ key, value });
+      
+      // Create a proper object to store
+      const settingObject = { key: key, value: value };
+      const request = store.put(settingObject);
 
       request.onsuccess = () => {
         resolve();
       };
 
       request.onerror = () => {
+        console.error(`Error in request for saving setting ${key}:`, request.error);
         reject(request.error);
       };
 
@@ -251,11 +268,10 @@ export const saveSetting = async <T>(key: string, value: T)
       };
     });
   } catch (error) {
-    console.error(`Error saving setting ${key}:`, error)
-    throw error
+    console.error(`Error saving setting ${key}:`, error);
+    throw error;
   }
-}
-
+};
 // Helper functions for cards
 export const getActiveCards = (): Promise<Flashcard[]> => {
   return getAllItems<Flashcard>(STORES.ACTIVE_CARDS)
@@ -358,6 +374,4 @@ export const migrateFromLocalStorage = async (): Promise<void> => {
     console.error("Error migrating from localStorage:", error)
   }
 }
-
-
 
