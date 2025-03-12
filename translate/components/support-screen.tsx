@@ -56,7 +56,7 @@ export default function SupportScreen() {
         </div>
 
         <a
-          href="buymeacoffee.com/translateandlearn"
+          href="https://buymeacoffee.com/translateandlearn"
           target="_blank"
           rel="noopener noreferrer"
           className="w-full"
