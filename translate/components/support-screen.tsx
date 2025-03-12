@@ -28,28 +28,28 @@ export default function SupportScreen() {
           <Coffee className="h-10 w-10 text-white" />
         </div>
 
-        <h1 className="text-2xl font-bold mb-4">Support This Project</h1>
+        <h1 className="text-2xl font-bold mb-4">Fuel This Learning Journey</h1>
 
         <p className="text-zinc-400 mb-6">
-          Since I dont want to bottor your learning with ads. 
-          But this project still costs money to maintain. I need you help !!
+          This app is ad-free to enhance your learning experience, but servers and
+          translations aren't. Your support keeps language learning accessible for everyone.
         </p>
 
         <div className="space-y-4 mb-8">
           <div className="bg-zinc-800 p-4 rounded-lg">
-            <h3 className="font-medium mb-2">Your support helps with:</h3>
+            <h3 className="font-medium mb-2">Your contribution powers:</h3>
             <ul className="text-zinc-400 text-left space-y-2">
               <li className="flex items-start">
                 <Heart className="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
-                <span>Server costs and API usage for translations</span>
+                <span>Fast, reliable translation services</span>
               </li>
               <li className="flex items-start">
                 <Heart className="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
-                <span>Adding new features like pronunciation and grammar checks</span>
+                <span>New features like pronunciation and grammar checks</span>
               </li>
               <li className="flex items-start">
                 <Heart className="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
-                <span>Expanding language support and offline capabilities</span>
+                <span>More languages and offline learning tools</span>
               </li>
             </ul>
           </div>
@@ -63,15 +63,14 @@ export default function SupportScreen() {
         >
           <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white flex items-center justify-center gap-2 py-6">
             <Coffee className="h-5 w-5" />
-            <span className="font-bold">Buy me a coffee</span>
+            <span className="font-bold">Buy me some FUEL</span>
           </Button>
         </a>
 
         <p className="text-xs text-zinc-500 mt-6">
-          Thank you for your support! Every contribution helps keep this project alive.
+          Every cup fuels better learning tools for thousands of language enthusiasts.
         </p>
       </div>
     </div>
   )
 }
-
