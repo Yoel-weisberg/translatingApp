@@ -7,8 +7,8 @@ import AllCardsScreen from "@/components/all-cards-screen"
 import { setupGlobalErrorHandlers } from "@/lib/error-handlers"
 import { registerServiceWorker } from "@/lib/register-sw"
 import { useEffect } from "react"
-import { Coffee } from "lucide-react"
 import SupportScreen from "@/components/support-screen"
+import { AnimatedCoffeeIcon } from "@/components/animated-coffee-icon"
 
 export default function Home() {
   useEffect(() => {
@@ -46,7 +46,7 @@ export default function Home() {
               cards
             </TabsTrigger>
             <TabsTrigger value="helpMe" className="text-white data-[state=active]:bg-zinc-700">
-              <Coffee />
+              <AnimatedCoffeeIcon />
             </TabsTrigger>
           </TabsList>
         </div>
